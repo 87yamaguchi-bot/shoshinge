@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正信偈に親しむ — 動画一覧</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#f7f3ee;color:#2a2420;}
+
+/* バナー */
+.banner{background:#0f0d0b;overflow:hidden;}
+.banner svg{display:block;width:100%;}
+
+
+/* 検索バー */
+.toolbar{background:#ede8e0;border-bottom:1px solid #d4cfc8;padding:10px 16px;display:flex;gap:8px;align-items:center;}
+.search-wrap{display:flex;align-items:center;background:#faf7f3;border:0.5px solid #c8c0b8;border-radius:6px;padding:0 10px;flex:1;}
+.search-wrap svg{width:14px;height:14px;stroke:#bbb;fill:none;flex-shrink:0;margin-right:6px;}
+.search-wrap input{border:none;background:transparent;font-family:'Noto Sans JP',sans-serif;font-size:13px;color:#2a2420;outline:none;padding:8px 0;width:100%;}
+.search-wrap input::placeholder{color:#bbb;}
+.result-count{font-size:11px;color:#aaa;white-space:nowrap;}
+.filter-btn{font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:7px 12px;border-radius:6px;border:0.5px solid #c8c0b8;background:#faf7f3;color:#4a4540;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.filter-btn.on{background:#1a1612;color:#f0ebe3;border-color:#1a1612;}
+
+/* レイアウト */
+.layout{display:flex;height:calc(100vh - 260px);min-height:480px;}
+
+/* 左カラム */
+.left{width:210px;min-width:210px;overflow-y:auto;background:#faf7f3;border-right:1px solid #ddd8d0;flex-shrink:0;}
+.vtxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.left::-webkit-scrollbar{width:3px;}
+.left::-webkit-scrollbar-thumb{background:#c8c0b8;}
+.sec-label{padding:6px 14px 4px;font-size:10px;color:#b8965a;letter-spacing:0.12em;background:#f4efe8;border-bottom:0.5px solid #e8e0d8;border-top:0.5px solid #e8e0d8;}
+.verse{padding:9px 14px;cursor:pointer;border-bottom:0.5px solid #ede8e0;display:flex;align-items:center;gap:8px;transition:background 0.12s;}
+.verse:hover{background:#f0ebe3;}
+.verse.active{background:#1a1612;}
+.verse.no-vid{opacity:0.28;cursor:default;}
+.vnum{font-size:10px;color:#bbb;min-width:18px;flex-shrink:0;}
+.verse.active .vnum{color:#b8965a;}
+.vtxt{font-family:'Noto Serif JP',serif;font-size:12px;color:#2a2420;flex:1;line-height:1.4;}
+.verse.active .vtxt{color:#f0ebe3;}
+.no-result-list{padding:20px;text-align:center;font-size:13px;color:#bbb;}
+
+/* 右カラム */
+.right{flex:1;overflow-y:auto;background:#f7f3ee;display:flex;flex-direction:column;}
+.right::-webkit-scrollbar{width:3px;}
+.right::-webkit-scrollbar-thumb{background:#c8c0b8;}
+.hint{text-align:center;padding:60px 20px;color:#bbb;font-size:13px;line-height:2.2;flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
+.hint-arrow{font-size:20px;color:#ddd8d0;}
+.r-inner{padding:18px 20px;flex:1;}
+.r-head{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #ddd8d0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.r-head-left .line-text{font-family:'Noto Serif JP',serif;font-size:18px;color:#1a1612;letter-spacing:0.1em;}
+.r-head-left .vcount{font-size:11px;color:#aaa;margin-top:4px;letter-spacing:0.05em;}
+
+/* 動画カード PC版：横並びカード */
+.video-grid{display:flex;flex-direction:column;gap:10px;}
+.vcard{display:flex;align-items:center;border:0.5px solid #ddd8d0;border-radius:8px;overflow:hidden;text-decoration:none;transition:all 0.15s;background:#faf7f3;}
+.vcard:hover{border-color:#b8965a;background:#fff;}
+.thumb-wrap{width:200px;min-width:200px;aspect-ratio:16/9;background:#111;overflow:hidden;flex-shrink:0;}
+.thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.vinfo{padding:12px 16px;flex:1;}
+.vtitle{font-size:13px;color:#2a2420;line-height:1.5;}
+.vlink{font-size:11px;color:#b8965a;margin-top:4px;display:block;}
+
+/* ナビバー */
+.nav-bar{padding:12px 20px;border-top:1px solid #ddd8d0;display:flex;gap:8px;background:#faf7f3;flex-shrink:0;}
+.nav-btn{font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:8px 14px;border-radius:6px;border:0.5px solid #c8c0b8;background:#fff;color:#4a4540;cursor:pointer;flex:1;transition:all 0.15s;letter-spacing:0.03em;}
+.nav-btn:hover{background:#f0ebe3;border-color:#aaa;}
+.nav-btn:disabled{opacity:0.25;cursor:default;}
+.nav-btn.next{text-align:right;}
+
+/* タブレット */
+@media(max-width:768px){
+  .left{width:150px;min-width:150px;}
+  .vtxt{font-size:11px;}
+  .r-inner{padding:14px 14px;}
+  .nav-btn{font-size:11px;padding:7px 8px;}
+  .toolbar{flex-wrap:wrap;}
+  .r-head{flex-direction:column;gap:8px;}
+  .thumb-wrap{width:140px;min-width:140px;}
+  .vtitle{font-size:12px;}
+  .vlink{display:none;}
+}
+/* スマホ */
+@media(max-width:480px){
+  .left{width:110px;min-width:110px;}
+  .verse{padding:8px 8px;}
+  .vtxt{font-size:10px;}
+  .r-inner{padding:12px 12px;}
+  .nav-btn{font-size:10px;padding:6px 6px;}
+  .video-grid{display:flex;flex-direction:column;gap:8px;}
+  .vcard{flex-direction:column;}
+  .thumb-wrap{width:100%;min-width:unset;}
+  .vinfo{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- バナー -->
+<div class="banner">
+<svg width="100%" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#1a2a4a"/>
+    <stop offset="55%" stop-color="#2d3d5a"/>
+    <stop offset="100%" stop-color="#b89a6a"/>
+  </linearGradient>
+  <linearGradient id="titleGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#fffbe0"/>
+    <stop offset="100%" stop-color="#d4b86a"/>
+  </linearGradient>
+</defs>
+<rect width="680" height="200" fill="url(#bg)"/>
+<!-- 上下ライン -->
+<line x1="30" y1="14" x2="650" y2="14" stroke="#8a9ab8" stroke-width="0.5" opacity="0.4"/>
+<line x1="30" y1="186" x2="650" y2="186" stroke="#8a9ab8" stroke-width="0.5" opacity="0.4"/>
+<!-- 蓮の花・右側 -->
+<g transform="translate(568,20)" fill="none" stroke="#8a9ab8" stroke-width="0.7" opacity="0.4">
+  <path d="M36,108 Q36,78 36,50 Q36,78 36,108Z"/>
+  <path d="M36,108 Q24,80 20,52 Q30,80 36,108Z"/>
+  <path d="M36,108 Q48,80 52,52 Q42,80 36,108Z"/>
+  <path d="M36,108 Q14,76 8,50 Q22,76 36,108Z"/>
+  <path d="M36,108 Q58,76 64,50 Q50,76 36,108Z"/>
+  <path d="M36,108 Q6,86 2,62 Q18,84 36,108Z"/>
+  <path d="M36,108 Q66,86 70,62 Q54,84 36,108Z"/>
+  <line x1="36" y1="108" x2="36" y2="140"/>
+  <path d="M36,126 Q20,118 14,106 Q28,116 36,126Z"/>
+  <path d="M36,126 Q52,118 58,106 Q44,116 36,126Z"/>
+  <circle cx="76" cy="38" r="1.2" fill="#8a9ab8" stroke="none"/>
+  <circle cx="78" cy="54" r="1.2" fill="#8a9ab8" stroke="none"/>
+  <circle cx="78" cy="70" r="1.2" fill="#8a9ab8" stroke="none"/>
+  <circle cx="77" cy="86" r="1.2" fill="#8a9ab8" stroke="none"/>
+  <circle cx="76" cy="102" r="1.2" fill="#8a9ab8" stroke="none"/>
+  <circle cx="74" cy="118" r="1.2" fill="#8a9ab8" stroke="none"/>
+</g>
+<!-- タイトル -->
+<text x="60" y="105" font-family="'Noto Serif JP',serif" font-size="52" font-weight="400" fill="url(#titleGlow)" letter-spacing="6" opacity="0.95">正信偈に親しむ</text>
+<line x1="60" y1="120" x2="530" y2="120" stroke="#8a9ab8" stroke-width="0.5" opacity="0.4"/>
+<text x="62" y="142" font-family="'Noto Sans JP',sans-serif" font-size="12" fill="#c8d4e8" letter-spacing="4" opacity="0.75">親鸞聖人のことばを、ともに読む</text>
+</svg>
+</div>
+
+
+<!-- 検索バー -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="行のことば・番号で検索（例：10、帰命）">
+  </div>
+  <span class="result-count" id="resultCount"></span>
+</div>
+
+<!-- メインレイアウト -->
+<div class="layout">
+  <div class="left" id="verseList"></div>
+  <div class="right" id="rightPane">
+    <div class="hint">
+      <div class="hint-arrow">←</div>
+      行を選ぶと動画が表示されます<br>
+      <span style="font-size:11px">（スマホは上の行をタップ）</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const sections=[
+  {f:1,t:10,l:"如来・本願"},
+  {f:11,t:20,l:"十二光・名号"},
+  {f:21,t:30,l:"本願力・廻向"},
+  {f:31,t:40,l:"摂取・信心"},
+  {f:41,t:50,l:"弥陀・難信"},
+  {f:51,t:60,l:"龍樹・曇鸞"},
+  {f:61,t:70,l:"天親・廻向"},
+  {f:71,t:80,l:"道綽・他力"},
+  {f:81,t:90,l:"信心・善導"},
+  {f:91,t:100,l:"慶喜・源信"},
+  {f:101,t:110,l:"源信・源空"},
+  {f:111,t:120,l:"真宗・結偈"},
+];
+
+const verses=[
+  {id:1,text:"帰命無量寿如来"},{id:2,text:"南無不可思議光"},{id:3,text:"法蔵菩薩囚位時"},{id:4,text:"在世自在王仏所"},
+  {id:5,text:"覩見諸仏浄土因"},{id:6,text:"国土人天之善悪"},{id:7,text:"建立無上殊勝願"},{id:8,text:"超発希有大弘誓"},
+  {id:9,text:"五劫思惟之摂受"},{id:10,text:"重誓名声聞十方"},{id:11,text:"普放無量無辺光"},{id:12,text:"無碍無対光炎王"},
+  {id:13,text:"清浄歓喜智慧光"},{id:14,text:"不断難思無称光"},{id:15,text:"超日月光照塵刹"},{id:16,text:"一切群生蒙光照"},
+  {id:17,text:"本願名号正定業"},{id:18,text:"至心信楽願為因"},{id:19,text:"成等覚証大涅槃"},{id:20,text:"必至滅度願成就"},
+  {id:21,text:"如来所以興出世"},{id:22,text:"唯説弥陀本願海"},{id:23,text:"五濁悪事群生海"},{id:24,text:"応信如来如実言"},
+  {id:25,text:"能発一念喜愛心"},{id:26,text:"不断煩悩得涅槃"},{id:27,text:"凡聖逆謗斉廻入"},{id:28,text:"如衆水入海一味"},
+  {id:29,text:"摂取心光常照護"},{id:30,text:"巳能雖破無明闇"},{id:31,text:"貧愛瞋憎之雲霧"},{id:32,text:"常覆真実信心天"},
+  {id:33,text:"譬如日光覆雲霧"},{id:34,text:"雲霧之下明無闇"},{id:35,text:"獲信見敬大慶喜"},{id:36,text:"即横超截五悪趣"},
+  {id:37,text:"一切善悪凡夫人"},{id:38,text:"聞信如来弘誓願"},{id:39,text:"仏言広大勝解者"},{id:40,text:"是人名分陀利華"},
+  {id:41,text:"弥陀仏本願念仏"},{id:42,text:"邪見僑慢悪衆生"},{id:43,text:"信楽受持甚以難"},{id:44,text:"難中之難無過斯"},
+  {id:45,text:"印度西天之論家"},{id:46,text:"中夏日域之高僧"},{id:47,text:"顕大聖興世正意"},{id:48,text:"明如来本誓応機"},
+  {id:49,text:"釈迦如来楞伽山"},{id:50,text:"為衆告命南天竺"},{id:51,text:"龍樹大士出於世"},{id:52,text:"悉能摧破有無見"},
+  {id:53,text:"宣説大乗無上法"},{id:54,text:"証歓喜地生安楽"},{id:55,text:"顕示難行陸路苦"},{id:56,text:"信楽易行水道楽"},
+  {id:57,text:"憶念弥陀仏本願"},{id:58,text:"自然即時入必定"},{id:59,text:"唯能常称如来号"},{id:60,text:"応報大悲弘誓恩"},
+  {id:61,text:"天親菩薩造論説"},{id:62,text:"帰命無碍光如来"},{id:63,text:"依修多羅顕真実"},{id:64,text:"光闡横超大誓願"},
+  {id:65,text:"広由本願力廻向"},{id:66,text:"為度群生彰一心"},{id:67,text:"帰入功徳大宝海"},{id:68,text:"必獲入大会衆数"},
+  {id:69,text:"得至蓮華蔵世界"},{id:70,text:"即証真如法性身"},{id:71,text:"遊煩悩林現神通"},{id:72,text:"入生死薗示応化"},
+  {id:73,text:"本師曇鸞梁天子"},{id:74,text:"常向鸞処菩薩礼"},{id:75,text:"三蔵流支授浄教"},{id:76,text:"梵焼仙経帰楽邦"},
+  {id:77,text:"天親菩薩論註解"},{id:78,text:"報土因果顕誓願"},{id:79,text:"往還廻向由他力"},{id:80,text:"正定之因唯信心"},
+  {id:81,text:"惑染凡夫信心発"},{id:82,text:"証知生死即涅槃"},{id:83,text:"必至無量光明土"},{id:84,text:"諸有衆生皆普化"},
+  {id:85,text:"道綽決聖道難証"},{id:86,text:"唯明浄土可通入"},{id:87,text:"万善自力貶勤修"},{id:88,text:"円満徳号歓専称"},
+  {id:89,text:"三不三信誨慇懃"},{id:90,text:"像末法滅同悲引"},{id:91,text:"一生造悪値弘誓"},{id:92,text:"至安養界証妙果"},
+  {id:93,text:"善導独明仏正意"},{id:94,text:"矜哀定散与逆悪"},{id:95,text:"光明名号顕因縁"},{id:96,text:"開入本願大智海"},
+  {id:97,text:"行者正受金剛心"},{id:98,text:"慶喜一念相応後"},{id:99,text:"与韋堤等獲三忍"},{id:100,text:"即証法性之常楽"},
+  {id:101,text:"源信広開一代教"},{id:102,text:"偏帰安養勧一切"},{id:103,text:"専雑執心判浅深"},{id:104,text:"報化二土正弁立"},
+  {id:105,text:"極重悪人唯称仏"},{id:106,text:"我亦在彼摂取中"},{id:107,text:"煩悩障眼雖不見"},{id:108,text:"大非無倦常照我"},
+  {id:109,text:"本師源空明仏教"},{id:110,text:"憐愍善悪凡夫人"},{id:111,text:"真宗教証興片州"},{id:112,text:"選択本願弘悪世"},
+  {id:113,text:"還来生死輪転家"},{id:114,text:"決以疑情為所止"},{id:115,text:"速入寂静無為楽"},{id:116,text:"必以信心為能入"},
+  {id:117,text:"弘経大士宗師等"},{id:118,text:"拯済無辺極濁悪"},{id:119,text:"道俗時衆共同心"},{id:120,text:"唯可信斯高僧説"},
+];
+
+// 動画データ（行番号→動画リスト）
+const rawVideos = [
+  {t:"帰命無量寿如来",u:"https://youtu.be/aDPVHE3k2Tg",id:"aDPVHE3k2Tg",lines:[1,2]},
+  {t:"十二光「智慧光」・「不断光」",u:"https://youtu.be/ucpeh3iYoag",id:"ucpeh3iYoag",lines:[13,14]},
+  {t:"天親菩薩造論説",u:"https://youtu.be/AKh0WGRz4S4",id:"AKh0WGRz4S4",lines:[61,62]},
+  {t:"龍樹大士出於世",u:"https://youtu.be/kwz_YCdUkks",id:"kwz_YCdUkks",lines:[51]},
+  {t:"本師曇鸞梁天子",u:"https://youtu.be/hWmioOggFag",id:"hWmioOggFag",lines:[73]},
+  {t:"道綽決聖道難証",u:"https://youtu.be/VjOmS54qlnc",id:"VjOmS54qlnc",lines:[85]},
+  {t:"善導独明仏正意",u:"https://youtu.be/GTc_Htro6K4",id:"GTc_Htro6K4",lines:[93]},
+  {t:"唯説弥陀本願海",u:"https://youtu.be/zr9k1HXPSzw",id:"zr9k1HXPSzw",lines:[22]},
+  {t:"法蔵菩薩因位時",u:"https://youtu.be/qC07aIJ8Tyk",id:"qC07aIJ8Tyk",lines:[3,4]},
+  {t:"本願名号正定業",u:"https://youtu.be/axnq1QZHGf0",id:"axnq1QZHGf0",lines:[17,18]},
+  {t:"巳能雖破無明闇",u:"https://youtu.be/Q6UGqJsFYtM",id:"Q6UGqJsFYtM",lines:[30]},
+  {t:"印度西天之論家",u:"https://youtu.be/P61MfZer1JQ",id:"P61MfZer1JQ",lines:[45,46]},
+  {t:"顕大聖興世正意",u:"https://youtu.be/EROApWNl5aE",id:"EROApWNl5aE",lines:[47,48,49,50]},
+  {t:"貪愛瞋憎之雲霧",u:"https://youtu.be/Qd57mt5cpyo",id:"Qd57mt5cpyo",lines:[31,32,33,34]},
+  {t:"悉能摧破有無見",u:"https://youtu.be/qnR1W5yNUTg",id:"qnR1W5yNUTg",lines:[52]},
+  {t:"依修多羅顕真実",u:"https://youtu.be/-jdK8Lsp0nk",id:"-jdK8Lsp0nk",lines:[63,64]},
+  {t:"建立無上殊勝願",u:"https://youtu.be/PITOJ61764A",id:"PITOJ61764A",lines:[7,8]},
+  {t:"必至滅度願成就",u:"https://youtu.be/BrM9TFPmfW0",id:"BrM9TFPmfW0",lines:[20]},
+  {t:"南無不可思議光",u:"https://youtu.be/98_v74-Ndq0",id:"98_v74-Ndq0",lines:[2]},
+  {t:"如来所以興出世",u:"https://youtu.be/iJvoWBjrT4w",id:"iJvoWBjrT4w",lines:[21]},
+  {t:"覩見諸仏浄土因",u:"https://youtu.be/_IprNKjRrow",id:"_IprNKjRrow",lines:[5,6]},
+  {t:"五劫思惟之摂受",u:"https://youtu.be/CB-BscxmH1o",id:"CB-BscxmH1o",lines:[9]},
+  {t:"重誓名声聞十方①",u:"https://youtu.be/tWPVa6nH1ZE",id:"tWPVa6nH1ZE",lines:[10]},
+  {t:"普放無量無辺光①",u:"https://youtu.be/hjmxDZ6oUl8",id:"hjmxDZ6oUl8",lines:[11]},
+  {t:"無碍無対光炎王「光炎王光」",u:"https://youtu.be/gePUsedITAs",id:"gePUsedITAs",lines:[12]},
+  {t:"普放無量無辺光②",u:"https://youtu.be/05D6TX-Odfc",id:"05D6TX-Odfc",lines:[11]},
+  {t:"清浄歓喜智慧光「清浄光」",u:"https://youtu.be/o-nRvxuEdSQ",id:"o-nRvxuEdSQ",lines:[13]},
+  {t:"不断難思無称光「難思光」",u:"https://youtu.be/KdZlo7rX38Y",id:"KdZlo7rX38Y",lines:[14]},
+  {t:"不断難思無称光「無称光」",u:"https://youtu.be/M44lB1V4flE",id:"M44lB1V4flE",lines:[14]},
+  {t:"清浄歓喜智慧光「歓喜光」",u:"https://youtu.be/OZ-5dBfIbYQ",id:"OZ-5dBfIbYQ",lines:[13]},
+  {t:"五濁悪事群生海",u:"https://youtu.be/9Zw8RWH9PR4",id:"9Zw8RWH9PR4",lines:[23,24]},
+  {t:"能発一念喜愛心",u:"https://youtu.be/ooAkFnXueZ0",id:"ooAkFnXueZ0",lines:[25]},
+  {t:"凡聖逆謗斉廻入　如衆水入海一味",u:"https://youtu.be/WWCBdWH__UU",id:"WWCBdWH__UU",lines:[27,28]},
+  {t:"摂取心光常摂護",u:"https://youtu.be/RJ0HWs0hP_s",id:"RJ0HWs0hP_s",lines:[29]},
+  {t:"仏言広大勝解者",u:"https://youtu.be/mrSyNf0ZRo0",id:"mrSyNf0ZRo0",lines:[39,40]},
+  {t:"一切善悪凡夫人",u:"https://youtu.be/iPZNtBrwyYk",id:"iPZNtBrwyYk",lines:[37,38]},
+  {t:"弥陀仏本願念仏",u:"https://youtu.be/zWq4JI8cvZk",id:"zWq4JI8cvZk",lines:[41,42]},
+  {t:"信楽受持甚以難①",u:"https://youtu.be/3ug7BpcTSSU",id:"3ug7BpcTSSU",lines:[42,43]},
+  {t:"帰命無量寿如来 南無不可思議光②",u:"https://youtu.be/jL92QrameNU",id:"jL92QrameNU",lines:[1,2]},
+  {t:"道俗時衆共同心 唯可信斯高僧説",u:"https://youtu.be/qTFiO6fvjfI",id:"qTFiO6fvjfI",lines:[119,120]},
+  {t:"本師源空明仏教①",u:"https://youtu.be/bpajmmpK3Jw",id:"bpajmmpK3Jw",lines:[109,110,111,112]},
+  {t:"本師源空明仏教②",u:"https://youtu.be/oC9xwVjaCRs",id:"oC9xwVjaCRs",lines:[109,110,111,112]},
+  {t:"本師源空明仏教③",u:"https://youtu.be/viiq92QHfks",id:"viiq92QHfks",lines:[109,110,111,112]},
+  {t:"還来生死輪転家",u:"https://youtu.be/M0Y_83szJXU",id:"M0Y_83szJXU",lines:[113]},
+  {t:"重誓名声聞十方②",u:"https://youtu.be/zTxslY9AgHQ",id:"zTxslY9AgHQ",lines:[10]},
+  {t:"十二光「無量光」「無辺光」「無碍光」",u:"https://youtu.be/X0aGAuB7N7I",id:"X0aGAuB7N7I",lines:[11]},
+  {t:"超日月光照塵刹②",u:"https://youtu.be/7LXmGN5wgEo",id:"7LXmGN5wgEo",lines:[15,16]},
+  {t:"本願名号正定業②",u:"https://youtu.be/-W4ieYyxjPk",id:"-W4ieYyxjPk",lines:[17]},
+  {t:"成等覚証大涅槃①",u:"https://youtu.be/rEACcj2bIgQ",id:"rEACcj2bIgQ",lines:[19]},
+  {t:"成等覚証大涅槃②",u:"https://youtu.be/FGHt4U4XKAc",id:"FGHt4U4XKAc",lines:[19]},
+  {t:"能発一念喜愛心①",u:"https://youtu.be/gWX91WrlvuY",id:"gWX91WrlvuY",lines:[25]},
+  {t:"本師源空明仏教④",u:"https://youtu.be/_dA98ZTLEgg",id:"_dA98ZTLEgg",lines:[109,110,111,112]},
+  {t:"能発一念喜愛心 不断煩悩得涅槃",u:"https://youtu.be/I0ORBvW_FPE",id:"I0ORBvW_FPE",lines:[51,26]},
+  {t:"与韋堤等獲三忍",u:"https://youtu.be/n4ObfazfPyM",id:"n4ObfazfPyM",lines:[99]},
+  {t:"獲信見敬大慶喜 即横超截五悪趣",u:"https://youtu.be/3tb4e2GSg5M",id:"3tb4e2GSg5M",lines:[35,36]},
+  {t:"信楽受持甚以難②",u:"https://youtu.be/0CCWx7ZsqcQ",id:"0CCWx7ZsqcQ",lines:[43,44]},
+  {t:"龍樹大士出於世②",u:"https://youtu.be/JYQzMGZgvxU",id:"JYQzMGZgvxU",lines:[51]},
+  {t:"宣説大乗無上法",u:"https://youtu.be/4iGIduTvl_M",id:"4iGIduTvl_M",lines:[53]},
+  {t:"証歓喜地生安楽",u:"https://youtu.be/HAiZhb9q60s",id:"HAiZhb9q60s",lines:[54]},
+  {t:"顕示難行陸路苦 信楽易行水道楽",u:"https://youtu.be/LxSkhtuw9fM",id:"LxSkhtuw9fM",lines:[55,56]},
+  {t:"憶念弥陀仏本願①",u:"https://youtu.be/0rtUmbFDK_s",id:"0rtUmbFDK_s",lines:[57,58,59]},
+  {t:"憶念弥陀仏本願②",u:"https://youtu.be/oqOWiZoPXNY",id:"oqOWiZoPXNY",lines:[57,58,59]},
+  {t:"応報大悲弘誓恩",u:"https://youtu.be/YdnJkXHdByM",id:"YdnJkXHdByM",lines:[60]},
+  {t:"広由本願力廻向",u:"https://youtu.be/9zmeiT5GbH0",id:"9zmeiT5GbH0",lines:[65]},
+  {t:"為度群生彰一心①",u:"https://youtu.be/w8OEXWMYN3M",id:"w8OEXWMYN3M",lines:[66]},
+  {t:"為度群生彰一心②",u:"https://youtu.be/VQZwE-4ndxg",id:"VQZwE-4ndxg",lines:[66]},
+  {t:"帰入功徳大宝海",u:"https://youtu.be/iE_ZyByAmy4",id:"iE_ZyByAmy4",lines:[67,68]},
+  {t:"得至蓮華蔵世界①",u:"https://youtu.be/RguRlTNrFfE",id:"RguRlTNrFfE",lines:[68,69]},
+  {t:"得至蓮華蔵世界 即証真如法性身",u:"https://youtu.be/sD2iNBftLCI",id:"sD2iNBftLCI",lines:[69,70]},
+  {t:"遊煩悩林現神通 入生死薗示応化",u:"https://youtu.be/uFUqm3fnyWU",id:"uFUqm3fnyWU",lines:[71,72]},
+  {t:"三蔵流支授浄教 梵焼仙経帰楽邦",u:"https://youtu.be/s8tV304QcQE",id:"s8tV304QcQE",lines:[74,75,76]},
+  {t:"報土因果顕誓願",u:"https://youtu.be/xKJ5Do7Jw7Y",id:"xKJ5Do7Jw7Y",lines:[77,78]},
+  {t:"往還廻向由他力①",u:"https://youtu.be/Fn0CXmXZYS8",id:"Fn0CXmXZYS8",lines:[79]},
+  {t:"正定之因唯信心",u:"https://youtu.be/RjrkQVapQec",id:"RjrkQVapQec",lines:[80]},
+  {t:"往還廻向由他力 正定之因唯信心",u:"https://youtu.be/t6QY3uptQKQ",id:"t6QY3uptQKQ",lines:[79,80]},
+  {t:"惑染凡夫信心発 証知生死即涅槃",u:"https://youtu.be/O8TaeH3m7as",id:"O8TaeH3m7as",lines:[81,82,83,84]},
+  {t:"道綽決聖道難証②",u:"https://youtu.be/FDs9SL5N6OE",id:"FDs9SL5N6OE",lines:[85,86]},
+  {t:"万善自力貶勤修①",u:"https://youtu.be/VefiXe9BPK8",id:"VefiXe9BPK8",lines:[87]},
+  {t:"万善自力貶勤修②",u:"https://youtu.be/H1ATkxgrRKw",id:"H1ATkxgrRKw",lines:[87]},
+  {t:"円満徳号勧専称",u:"https://youtu.be/ilmIResvQxw",id:"ilmIResvQxw",lines:[88]},
+  {t:"三不三信誨慇懃",u:"https://youtu.be/nGwFHoU3ckw",id:"nGwFHoU3ckw",lines:[89]},
+  {t:"像末法滅同悲引",u:"https://youtu.be/e6yymZzv43E",id:"e6yymZzv43E",lines:[90,91,92]},
+  {t:"善導独明仏正意①",u:"https://youtu.be/SP_XTo4w_PY",id:"SP_XTo4w_PY",lines:[93,94,95,96]},
+  {t:"善導独明仏正意②",u:"https://youtu.be/Awt8M0I786c",id:"Awt8M0I786c",lines:[93,94,95,96]},
+  {t:"善導独明仏正意③",u:"https://youtu.be/-jQ9L6L8Ndk",id:"-jQ9L6L8Ndk",lines:[93,94,95,96]},
+  {t:"善導独明仏正意④",u:"https://youtu.be/r_phfyF1ntY",id:"r_phfyF1ntY",lines:[93,94,95,96]},
+  {t:"善導独明仏正意⑤",u:"https://youtu.be/9dlJEbypV7o",id:"9dlJEbypV7o",lines:[93,94,95,96]},
+  {t:"行者正受金剛心",u:"https://youtu.be/Ajr3y4WLf3w",id:"Ajr3y4WLf3w",lines:[97]},
+  {t:"慶喜一念相応後",u:"https://youtu.be/P3QXDb-fxdI",id:"P3QXDb-fxdI",lines:[98]},
+];
+
+// 行番号→動画リスト のマップを構築
+const videoMap = {};
+rawVideos.forEach(v => {
+  v.lines.forEach(l => {
+    if (!videoMap[l]) videoMap[l] = [];
+    videoMap[l].push(v);
+  });
+});
+
+let activeId = null;
+let filtered = verses;
+
+function hasVid(id) { return !!videoMap[id]; }
+
+
+function applyFilter() {
+  const q = document.getElementById('searchInput').value.trim();
+  const rc = document.getElementById('resultCount');
+  filtered = verses.filter(v => {
+    if (q) {
+      if (/^\d+$/.test(q)) { if (v.id !== parseInt(q)) return false; }
+      else { if (!v.text.includes(q)) return false; }
+    }
+    if (filterDone && !done.has(v.id)) return false;
+    return true;
+  });
+  rc.textContent = q ? filtered.length + '件' : '';
+  renderList();
+  if (filtered.length === 1 && hasVid(filtered[0].id)) selectVerse(filtered[0].id);
+}
+
+function renderList() {
+  const list = document.getElementById('verseList');
+  list.innerHTML = '';
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="no-result-list">該当なし</div>';
+    return;
+  }
+  filtered.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'verse' + (hasVid(v.id) ? '' : ' no-vid') + (activeId === v.id ? ' active' : '');
+    el.dataset.id = v.id;
+    el.innerHTML = `<span class="vnum">${v.id}</span><span class="vtxt">${v.text}</span>`;
+    if (hasVid(v.id)) el.addEventListener('click', () => selectVerse(v.id));
+    list.appendChild(el);
+  });
+}
+
+function selectVerse(id) {
+  activeId = id;
+  renderList();
+  const v = verses.find(x => x.id === id);
+  const vids = videoMap[id] || [];
+  const idx = filtered.findIndex(x => x.id === id);
+  const prev = filtered.slice(0, idx).reverse().find(x => hasVid(x.id));
+  const next = filtered.slice(idx + 1).find(x => hasVid(x.id));
+
+  document.getElementById('rightPane').innerHTML = `
+    <div class="r-inner">
+      <div class="r-head">
+        <div class="r-head-left">
+          <div class="line-text">${v.text}</div>
+          <div class="vcount">${vids.length}本　第${v.id}行</div>
+        </div>
+      </div>
+      <div class="video-grid">${vids.map(vi => `<a class="vcard" href="${vi.u}" target="_blank" rel="noopener"><div class="thumb-wrap"><img src="https://img.youtube.com/vi/${vi.id}/mqdefault.jpg" alt="${vi.t}" loading="lazy"></div><div class="vinfo"><div class="vtitle">${vi.t}</div><div class="vlink">YouTube で見る →</div></div></a>`).join('')}</div>
+    </div>
+    <div class="nav-bar">
+      <button class="nav-btn" onclick="selectVerse(${prev ? prev.id : 0})" ${!prev ? 'disabled' : ''}>← ${prev ? prev.text : 'なし'}</button>
+      <button class="nav-btn next" onclick="selectVerse(${next ? next.id : 0})" ${!next ? 'disabled' : ''}>${next ? next.text : 'なし'} →</button>
+    </div>
+  `;
+  const el = document.querySelector(`.verse[data-id="${id}"]`);
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+
+document.getElementById('searchInput').addEventListener('input', applyFilter);
+renderList();
+</script>
+</body>
+</html>
